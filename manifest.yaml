@@ -1,0 +1,47 @@
+#
+# NOT TESTED
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prservice
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prservie-config
+  namespace: prservice
+data:
+  prservice.yaml: |
+    addr: 0.0.0.0:80
+---
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prservice
+  template:
+    metadata:
+      name: prservice
+      namespace: prservice
+      labels:
+        app.kubernetes.io/name: prservice
+    spec:
+      containers:
+        - image: ghcr.io/okunix/prservice:latest
+          name: prservice
+          volumeMounts:
+            - name: prservice-config-volume
+              mountPath: /etc/prservice
+              readOnly: true
+      volumes:
+        - name: prservice-config-volume
+          configMap:
+            name: prservice-config
+            defaultMode: 0600

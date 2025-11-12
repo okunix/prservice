@@ -1,0 +1,2 @@
+postgres:
+  addr: prservice_postgres:5432

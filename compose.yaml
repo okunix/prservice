@@ -1,0 +1,40 @@
+services:
+  prservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prservice
+    ports:
+      - 8080:80/tcp
+    volumes:
+      - ./prservice.yaml:/etc/prservice/prservice.yaml
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:18
+    container_name: prservice_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prservice_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+  adminer:
+    image: adminer:latest
+    container_name: prservice_adminer
+    ports:
+      - 8081:8080/tcp
+    environment:
+      ADMINER_DEFAULT_SERVER: prservice_postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data: {}
