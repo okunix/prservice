@@ -3,29 +3,22 @@ package pullrequest
 import (
 	"errors"
 	"regexp"
+	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/okunix/prservice/internal/pkg/models"
 )
 
-type Reviewer struct {
-	UserId        string `json:"user_id"`
-	UserName      string `json:"user_name"`
-	PullRequestId string `json:"pull_request_id"`
-}
-
-type Author struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type PullRequest struct {
-	Id                string     `json:"id"`
-	Name              string     `json:"name"`
-	Author            Author     `json:"author"`
+	Id                string     `json:"pull_request_id"`
+	Name              string     `json:"pull_request_name"`
+	AuthorId          string     `json:"author_id"`
 	Status            Status     `json:"status"`
-	Reviewers         []Reviewer `json:"reviewers"`
+	Reviewers         []string   `json:"assigned_reviewers"`
 	NeedMoreReviewers bool       `json:"needMoreReviewers"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	MergedAt          *time.Time `json:"mergedAt,omitempty"`
 }
 
 type Status string
@@ -47,22 +40,20 @@ var (
 	ErrAuthorReviewer   = errors.New("author of a pull request can't be it's reviewer")
 )
 
-func New(name string, author Author, initialReviewers []Reviewer) (*PullRequest, error) {
-	if len(initialReviewers) > 2 {
+func New(name string, authorId string, reviewerIds []string) (*PullRequest, error) {
+	if len(reviewerIds) > 2 {
 		return nil, ErrTooManyReviewers
 	}
 
-	for _, v := range initialReviewers {
-		if author.Id == v.UserId {
-			return nil, ErrAuthorReviewer
-		}
+	if slices.Contains(reviewerIds, authorId) {
+		return nil, ErrAuthorReviewer
 	}
 
 	pr := PullRequest{
 		Id:                uuid.NewString(),
 		Name:              name,
-		Author:            author,
-		Reviewers:         initialReviewers,
+		AuthorId:          authorId,
+		Reviewers:         reviewerIds,
 		Status:            STATUS_OPEN,
 		NeedMoreReviewers: false,
 	}

@@ -9,24 +9,24 @@ import (
 )
 
 type User struct {
-	Id       string  `json:"id"`
-	Name     string  `json:"name"`
-	IsActive bool    `json:"is_active"`
-	TeamName *string `json:"teamName,omitempty"`
+	Id       string `json:"user_id"   db:"id"`
+	Name     string `json:"username"  db:"username"`
+	TeamName string `json:"team_name" db:"team_name"`
+	IsActive bool   `json:"is_active" db:"is_active"`
 }
 
-func New(name string, isActive bool) (*User, error) {
+func New(name, teamName string, isActive bool) (*User, error) {
 	u := User{
 		Id:       uuid.NewString(),
 		Name:     name,
 		IsActive: isActive,
-		TeamName: nil,
+		TeamName: teamName,
 	}
 	return &u, u.Validate()
 }
 
 func (u *User) AssignTeam(teamName string) {
-	u.TeamName = &teamName
+	u.TeamName = teamName
 }
 
 func (u *User) Validate() error {

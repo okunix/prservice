@@ -4,10 +4,10 @@ CREATE TABLE IF NOT EXISTS teams (
 
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR PRIMARY KEY,
-    name VARCHAR NOT NULL,
+    username VARCHAR NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
-    teamName VARCHAR NULL DEFAULT NULL,
-    FOREIGN KEY (teamName) REFERENCES teams(name) ON DELETE SET NULL
+    team_name VARCHAR NULL DEFAULT NULL,
+    FOREIGN KEY (team_name) REFERENCES teams(name) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS pull_requests (
@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS pull_requests (
     author_id VARCHAR NOT NULL,
     status VARCHAR NOT NULL,
     need_more_reviewers BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NULL DEFAULT now(),
+    merged_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (author_id) REFERENCES users(id)
 );
 

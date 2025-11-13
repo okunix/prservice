@@ -40,6 +40,7 @@ func Run() error {
 
 	router := chi.NewRouter()
 	router.Use(corsMiddleware.Handler)
+
 	router.Handle("/static/*", http.FileServerFS(static.StaticFS))
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {

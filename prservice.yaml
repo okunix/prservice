@@ -1,2 +1,4 @@
 postgres:
   addr: prservice_postgres:5432
+
+adminToken: secret_admin_token

@@ -9,13 +9,14 @@ import (
 )
 
 type TeamMember struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id       string `json:"user_id"`
+	Name     string `json:"username"`
+	IsActive bool   `json:"is_active"`
 }
 
 type Team struct {
 	Name    string       `json:"name"`
-	Members []TeamMember `json:"members,omitempty"`
+	Members []TeamMember `json:"members"`
 }
 
 func New(name string) (*Team, error) {
