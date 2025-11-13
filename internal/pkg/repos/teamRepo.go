@@ -22,23 +22,27 @@ func NewTeamRepo(db *sqlx.DB, userRepo user.Repo) team.Repo {
 	}
 }
 
-func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.Team) (*team.Team, error) {
-	tx, err := repo.db.BeginTxx(ctx, nil)
+func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.AddTeamRequest) (*team.Team, error) {
+	if err := t.Team.Validate(); err != nil {
+		return nil, err
+	}
+
+	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	insertTeamQuery := `INSERT INTO teams (name) VALUES ($1) RETURNING name;`
-	_, err = tx.ExecContext(ctx, insertTeamQuery, t.Name)
+	_, err = tx.ExecContext(ctx, insertTeamQuery, t.Team.Name)
 	if err != nil {
 		tx.Rollback()
 		slog.Error(err.Error())
-		return nil, err
+		return nil, models.ErrTeamExists
 	}
 
 	addMemberQuery := `UPDATE users SET team_name=$2 WHERE id=$1;`
-	for _, v := range t.Members {
-		_, err := tx.ExecContext(ctx, addMemberQuery, v.Id, t.Name)
+	for _, v := range t.Team.Members {
+		_, err := tx.ExecContext(ctx, addMemberQuery, v.Id, t.Team.Name)
 		if err != nil {
 			tx.Rollback()
 			slog.Error(err.Error())
@@ -50,7 +54,7 @@ func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.Team) (*team.Team,
 		slog.Error(err.Error())
 		return nil, models.ErrTeamExists
 	}
-	return &team.Team{Name: t.Name}, nil
+	return repo.GetTeamByName(ctx, t.Team.Name)
 }
 
 func (repo *TeamRepoImpl) GetTeamByName(ctx context.Context, name string) (*team.Team, error) {

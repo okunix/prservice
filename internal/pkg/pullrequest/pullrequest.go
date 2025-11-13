@@ -64,11 +64,11 @@ func (pr *PullRequest) Validate() error {
 	problems := models.ValidationError{}
 
 	if err := validateName(pr.Name); err != nil {
-		problems["name"] = err
+		problems["name"] = err.Error()
 	}
 
 	if err := validateStatus(pr.Status); err != nil {
-		problems["status"] = err
+		problems["status"] = err.Error()
 	}
 
 	if len(problems) > 0 {

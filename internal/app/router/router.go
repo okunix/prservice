@@ -6,6 +6,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/okunix/prservice/internal/app/endpoints"
+	"github.com/okunix/prservice/internal/pkg/data"
+	"github.com/okunix/prservice/internal/pkg/repos"
 	"github.com/okunix/prservice/static"
 )
 
@@ -44,9 +47,14 @@ func New() http.Handler {
 		w.Write([]byte("healthy"))
 	})
 
+	db := data.PostgreSQL()
+	userRepo := repos.NewUserRepo(db)
+	teamRepo := repos.NewTeamRepo(db, userRepo)
+	//pullRequestRepo := repos.NewPullRequestRepo(db)
+
 	r.Route("/team", func(r chi.Router) {
-		r.Get("/add", nil)
-		r.Post("/get", nil)
+		r.Post("/add", endpoints.AddTeam(teamRepo))
+		r.Get("/get", nil)
 	})
 
 	r.Route("/users", func(r chi.Router) {
@@ -55,9 +63,9 @@ func New() http.Handler {
 	})
 
 	r.Route("/pullRequest", func(r chi.Router) {
-		r.Get("create", nil)
-		r.Get("merge", nil)
-		r.Get("reassign", nil)
+		r.Get("/create", nil)
+		r.Get("/merge", nil)
+		r.Get("/reassign", nil)
 	})
 
 	return r

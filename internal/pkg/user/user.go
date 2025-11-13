@@ -33,10 +33,10 @@ func (u *User) Validate() error {
 	problems := models.ValidationError{}
 
 	if err := validateId(u.Id); err != nil {
-		problems["id"] = err
+		problems["id"] = err.Error()
 	}
 	if err := validateName(u.Name); err != nil {
-		problems["name"] = err
+		problems["name"] = err.Error()
 	}
 
 	if len(problems) > 0 {

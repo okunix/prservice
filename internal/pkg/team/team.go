@@ -15,7 +15,7 @@ type TeamMember struct {
 }
 
 type Team struct {
-	Name    string       `json:"name"`
+	Name    string       `json:"team_name"`
 	Members []TeamMember `json:"members"`
 }
 
@@ -34,7 +34,7 @@ func (t *Team) Validate() error {
 	problems := models.ValidationError{}
 
 	if err := validateName(t.Name); err != nil {
-		problems["name"] = err
+		problems["name"] = err.Error()
 	}
 
 	if len(problems) > 0 {
