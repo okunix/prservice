@@ -10,7 +10,7 @@ FROM alpine
 WORKDIR /app
 COPY --from=builder /app/bin/* .
 RUN apk add --no-cache curl
-HEALTHCHECK CMD curl -f http://localhost || exit 1
+HEALTHCHECK --interval=5s --timeout=5s --retries=3 CMD curl -f http://localhost || exit 1
 
 EXPOSE 80
 
