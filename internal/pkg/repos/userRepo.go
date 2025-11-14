@@ -42,18 +42,19 @@ func (u *UserRepoImpl) GetUsersByTeamName(
 
 func (repo *UserRepoImpl) SetIsActive(
 	ctx context.Context,
-	userId string,
-	isActive bool,
-) (*user.User, error) {
+	req user.SetIsActiveRequest,
+) (user.UserResponse, error) {
+	var resp user.UserResponse
 	q := `UPDATE users SET is_active = $1 WHERE id = $2 RETURNING id, username, is_active, team_name;`
 	var u user.User
-	err := repo.db.QueryRowContext(ctx, q, isActive, userId).
+	err := repo.db.QueryRowContext(ctx, q, req.IsActive, req.UserId).
 		Scan(&u.Id, &u.Name, &u.IsActive, &u.TeamName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, models.ErrNotFound
+			return resp, models.ErrNotFound
 		}
-		return nil, err
+		return resp, err
 	}
-	return &u, nil
+	resp.User = u
+	return resp, nil
 }

@@ -3,6 +3,8 @@ package pullrequest
 import (
 	"context"
 	"time"
+
+	"github.com/okunix/prservice/internal/pkg/models"
 )
 
 type PRMergeRequest struct {
@@ -13,6 +15,20 @@ type PRCreateRequest struct {
 	PullRequestId   string `json:"pull_request_id"`
 	PullRequestName string `json:"pull_request_name"`
 	AuthorId        string `json:"author_id"`
+}
+
+func (req PRCreateRequest) Validate() error {
+	problems := models.ValidationError{}
+	if err := validateName(req.PullRequestName); err != nil {
+		problems["pull_request_name"] = err.Error()
+	}
+	if len(req.PullRequestId) < 1 {
+		problems["pull_request_id"] = "id is too short"
+	}
+	if len(problems) > 0 {
+		return problems
+	}
+	return nil
 }
 
 type PRReassignRequest struct {

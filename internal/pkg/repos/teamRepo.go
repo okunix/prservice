@@ -22,14 +22,18 @@ func NewTeamRepo(db *sqlx.DB, userRepo user.Repo) team.Repo {
 	}
 }
 
-func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.AddTeamRequest) (*team.Team, error) {
+func (repo *TeamRepoImpl) AddTeam(
+	ctx context.Context,
+	t team.AddTeamRequest,
+) (team.AddTeamResponse, error) {
+	var resp team.AddTeamResponse
 	if err := t.Team.Validate(); err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	insertTeamQuery := `INSERT INTO teams (name) VALUES ($1) RETURNING name;`
@@ -37,7 +41,7 @@ func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.AddTeamRequest) (*
 	if err != nil {
 		tx.Rollback()
 		slog.Error(err.Error())
-		return nil, models.ErrTeamExists
+		return resp, models.ErrTeamExists
 	}
 
 	addMemberQuery := `UPDATE users SET team_name=$2 WHERE id=$1;`
@@ -46,36 +50,45 @@ func (repo *TeamRepoImpl) AddTeam(ctx context.Context, t team.AddTeamRequest) (*
 		if err != nil {
 			tx.Rollback()
 			slog.Error(err.Error())
-			return nil, models.ErrNotAssigned
+			return resp, models.ErrNotAssigned
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		slog.Error(err.Error())
-		return nil, models.ErrTeamExists
+		return resp, models.ErrTeamExists
 	}
-	return repo.GetTeamByName(ctx, t.Team.Name)
+	getTeamResp, err := repo.GetTeamByName(ctx, t.Team.Name)
+	if err != nil {
+		return resp, err
+	}
+	return team.AddTeamResponse{Team: team.Team(getTeamResp)}, nil
 }
 
-func (repo *TeamRepoImpl) GetTeamByName(ctx context.Context, name string) (*team.Team, error) {
+func (repo *TeamRepoImpl) GetTeamByName(
+	ctx context.Context,
+	name string,
+) (team.GetTeamResponse, error) {
+	resp := team.GetTeamResponse{Name: name}
 	teamExistsQuery := `SELECT EXISTS(SELECT 1 FROM teams WHERE name=$1);`
 	var exists bool
 	err := repo.db.QueryRowContext(ctx, teamExistsQuery, name).Scan(&exists)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 	if !exists {
-		return nil, models.ErrNotFound
+		return resp, models.ErrNotFound
 	}
 
 	users, err := repo.userRepo.GetUsersByTeamName(ctx, name)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
-	var members []team.TeamMember
+	members := []team.TeamMember{}
 	for _, v := range users {
 		member := team.TeamMember{Id: v.Id, Name: v.Name, IsActive: v.IsActive}
 		members = append(members, member)
 	}
-	return &team.Team{Name: name, Members: members}, nil
+	resp.Members = members
+	return resp, nil
 }

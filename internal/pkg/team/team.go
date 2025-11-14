@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/okunix/prservice/internal/pkg/models"
-	"github.com/okunix/prservice/internal/pkg/user"
 )
 
 type TeamMember struct {
@@ -24,10 +23,6 @@ func New(name string) (*Team, error) {
 		Name: name,
 	}
 	return &t, t.Validate()
-}
-
-func (t *Team) AddMember(member user.User) {
-	t.Members = append(t.Members, TeamMember{Id: member.Id, Name: member.Name})
 }
 
 func (t *Team) Validate() error {

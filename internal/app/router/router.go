@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/okunix/prservice/internal/app/endpoints"
+	mw "github.com/okunix/prservice/internal/app/middleware"
 	"github.com/okunix/prservice/internal/pkg/data"
 	"github.com/okunix/prservice/internal/pkg/repos"
 	"github.com/okunix/prservice/static"
@@ -50,22 +51,22 @@ func New() http.Handler {
 	db := data.PostgreSQL()
 	userRepo := repos.NewUserRepo(db)
 	teamRepo := repos.NewTeamRepo(db, userRepo)
-	//pullRequestRepo := repos.NewPullRequestRepo(db)
+	pullrequestRepo := repos.NewPullRequestRepo(db)
 
 	r.Route("/team", func(r chi.Router) {
 		r.Post("/add", endpoints.AddTeam(teamRepo))
-		r.Get("/get", nil)
+		r.Get("/get", endpoints.GetTeamByName(teamRepo))
 	})
 
 	r.Route("/users", func(r chi.Router) {
-		r.Get("/getReview", nil)
-		r.Post("/setIsActive", nil)
+		r.Get("/getReview", endpoints.GetReview(pullrequestRepo))
+		r.Handle("POST /setIsActive", mw.AdminOnly(endpoints.SetIsActive(userRepo)))
 	})
 
 	r.Route("/pullRequest", func(r chi.Router) {
-		r.Get("/create", nil)
-		r.Get("/merge", nil)
-		r.Get("/reassign", nil)
+		r.Get("/create", endpoints.CreatePullRequest(pullrequestRepo))
+		r.Get("/merge", endpoints.MergePullRequest(pullrequestRepo))
+		r.Get("/reassign", endpoints.ReassignPullRequest(pullrequestRepo))
 	})
 
 	return r

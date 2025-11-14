@@ -10,6 +10,10 @@ var (
 	conf Config
 )
 
+const (
+	DefaultAdminToken = "admin"
+)
+
 type PostgresConfig struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
@@ -19,13 +23,15 @@ type PostgresConfig struct {
 }
 
 type Config struct {
+	AdminToken     string         `yaml:"adminToken"`
 	Addr           string         `yaml:"addr"`
 	PostgresConfig PostgresConfig `yaml:"postgres"`
 }
 
 func newDefaultConfig() Config {
 	return Config{
-		Addr: "0.0.0.0:80",
+		Addr:       "0.0.0.0:80",
+		AdminToken: DefaultAdminToken,
 		PostgresConfig: PostgresConfig{
 			User:     "postgres",
 			Password: "postgres",

@@ -100,7 +100,7 @@ func (p *PullRequestRepoImpl) GetReview(
 	if err != nil {
 		return resp, err
 	}
-	var prs []pullrequest.PullRequestShort
+	prs := []pullrequest.PullRequestShort{}
 	for rows.Next() {
 		var pr pullrequest.PullRequestShort
 		if err := rows.Scan(&pr.Id, &pr.Name, &pr.AuthorId, &pr.Status); err != nil {
@@ -109,6 +109,7 @@ func (p *PullRequestRepoImpl) GetReview(
 		prs = append(prs, pr)
 	}
 	resp.PullRequests = prs
+	resp.UserId = userId
 	return resp, nil
 }
 

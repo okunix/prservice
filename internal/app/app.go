@@ -1,7 +1,9 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/okunix/prservice/internal/app/config"
 	"github.com/okunix/prservice/internal/app/router"
@@ -14,6 +16,10 @@ func Run() error {
 	err := data.InitPostgres(conf.PostgresConfig, migrations.MigrationsFS)
 	if err != nil {
 		return err
+	}
+
+	if conf.AdminToken == config.DefaultAdminToken {
+		fmt.Fprintf(os.Stderr, "WARNING: Default admin token is used!")
 	}
 
 	server := http.Server{
