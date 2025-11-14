@@ -44,9 +44,16 @@ func (repo *TeamRepoImpl) AddTeam(
 		return resp, models.ErrTeamExists
 	}
 
-	addMemberQuery := `UPDATE users SET team_name=$2 WHERE id=$1;`
+	addMemberQuery := `
+		INSERT INTO users (id, username, is_active, team_name)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (id) DO UPDATE
+		SET username = excluded.username,
+		    is_active = excluded.is_active,
+		    team_name = excluded.team_name;
+	`
 	for _, v := range t.Team.Members {
-		_, err := tx.ExecContext(ctx, addMemberQuery, v.Id, t.Team.Name)
+		_, err := tx.ExecContext(ctx, addMemberQuery, v.Id, v.Name, v.IsActive, t.Team.Name)
 		if err != nil {
 			tx.Rollback()
 			slog.Error(err.Error())

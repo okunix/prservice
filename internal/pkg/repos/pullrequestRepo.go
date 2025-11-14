@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/okunix/prservice/internal/pkg/models"
 	"github.com/okunix/prservice/internal/pkg/pullrequest"
 )
@@ -51,13 +52,21 @@ func (p *PullRequestRepoImpl) Create(
 		&resp.PR.Status,
 	)
 	if err != nil {
-		slog.Error(err.Error())
-		return resp, models.ErrPRExists
+		var pqError *pq.Error
+		if errors.As(err, &pqError) {
+			switch pqError.Code {
+			case "23505":
+				return resp, models.ErrPRExists
+			case "23503":
+				return resp, models.ErrNotFound
+			}
+		}
+		return resp, err
 	}
 	// also assigning 2 random users from team except author
 	assignRandomUsersQuery := `
 		INSERT INTO reviewers (user_id, pull_request_id) 
-		SELECT id AS user_id, $1 FROM users 
+		SELECT id AS user_id, CAST($1 AS VARCHAR) FROM users 
 		WHERE team_name = (SELECT u.team_name FROM pull_requests pr INNER JOIN users u ON u.id = pr.author_id WHERE pr.id = $1) 
 		AND NOT id = (SELECT author_id FROM pull_requests WHERE id = $1) AND is_active = true ORDER BY RANDOM() LIMIT 2 RETURNING user_id;
 	`
@@ -123,19 +132,22 @@ func (p *PullRequestRepoImpl) Merge(
 	if err != nil {
 		return resp, err
 	}
-	if pr.Status == pullrequest.STATUS_MERGED {
-		return resp, models.ErrPRMerged
-	}
-
-	mergedAt := time.Now()
 	resp.PullRequestId = pr.Id
 	resp.PullRequestName = pr.Name
 	resp.AuthorId = pr.AuthorId
+	resp.AssignedReviewers = pr.Reviewers
+	if pr.Status == pullrequest.STATUS_MERGED {
+		resp.Status = pr.Status
+		resp.MergedAt = *pr.MergedAt
+		return resp, nil
+	}
+
+	mergedAt := time.Now()
+
 	resp.Status = pullrequest.STATUS_MERGED
 	resp.MergedAt = mergedAt
-	resp.AssignedReviewers = pr.Reviewers
 
-	q := `UPDATE pull_requests SET status = $1, mergedAt = $2;`
+	q := `UPDATE pull_requests SET status = $1, merged_at = $2;`
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
 		return resp, err
@@ -187,7 +199,7 @@ func (p *PullRequestRepoImpl) Reassign(
 		Scan(&replacedBy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return resp, models.ErrNoCandidate
+			return resp, models.ErrNotFound
 		}
 		return resp, models.ErrNotAssigned
 	}
@@ -203,7 +215,7 @@ func (p *PullRequestRepoImpl) Reassign(
 			break
 		}
 	}
-	return resp, nil
+	return resp, tx.Commit()
 }
 
 func (p *PullRequestRepoImpl) GetById(

@@ -64,9 +64,9 @@ func New() http.Handler {
 	})
 
 	r.Route("/pullRequest", func(r chi.Router) {
-		r.Get("/create", endpoints.CreatePullRequest(pullrequestRepo))
-		r.Get("/merge", endpoints.MergePullRequest(pullrequestRepo))
-		r.Get("/reassign", endpoints.ReassignPullRequest(pullrequestRepo))
+		r.Post("/create", endpoints.CreatePullRequest(pullrequestRepo))
+		r.Post("/merge", endpoints.MergePullRequest(pullrequestRepo))
+		r.Post("/reassign", endpoints.ReassignPullRequest(pullrequestRepo))
 	})
 
 	return r
