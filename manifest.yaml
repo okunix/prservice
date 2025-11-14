@@ -6,7 +6,7 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prservie-config
+  name: prservice-config
   namespace: prservice
 data:
   prservice.yaml: |
@@ -27,7 +27,7 @@ metadata:
   labels:
     app.kubernetes.io/name: prservice
 spec:
-  replicas: 1
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
