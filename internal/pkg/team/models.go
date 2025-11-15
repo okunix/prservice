@@ -19,6 +19,10 @@ type AddTeamResponse struct {
 
 type GetTeamResponse Team
 
+type DeactivateTeamResponse struct {
+	Team Team `json:"team"`
+}
+
 type DeactivateTeamRequest struct {
 	TeamName string `json:"team_name"`
 }

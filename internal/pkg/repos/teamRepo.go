@@ -96,3 +96,18 @@ func (repo *TeamRepoImpl) GetTeamByName(
 	resp.Members = members
 	return resp, nil
 }
+
+func (repo *TeamRepoImpl) Deactivate(
+	ctx context.Context,
+	t team.DeactivateTeamRequest,
+) (team.DeactivateTeamResponse, error) {
+	var resp team.DeactivateTeamResponse
+	q := `UPDATE users SET is_active = false WHERE team_name = $1;`
+	_, err := repo.db.ExecContext(ctx, q, t.TeamName)
+	if err != nil {
+		return resp, err
+	}
+	gt, err := repo.GetTeamByName(ctx, t.TeamName)
+	resp.Team = team.Team(gt)
+	return resp, err
+}

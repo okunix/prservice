@@ -41,3 +41,20 @@ func GetTeamByName(repo team.Repo) http.HandlerFunc {
 		WriteJson(w, http.StatusOK, resp)
 	}
 }
+
+func Deactivate(repo team.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req team.DeactivateTeamRequest
+		if err := ReadJson(r.Body, &req); err != nil {
+			WriteJson(w, http.StatusBadRequest,
+				models.ErrInvalidRequestBodyFormat)
+			return
+		}
+		resp, err := repo.Deactivate(r.Context(), req)
+		if err != nil {
+			WriteJson(w, http.StatusNotFound, models.ErrNotFound)
+			return
+		}
+		WriteJson(w, http.StatusOK, resp)
+	}
+}
