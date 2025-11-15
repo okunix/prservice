@@ -22,6 +22,8 @@ make
 ./bin/prservice --config ./config.yaml
 ```
 
+Миграция базы данных происходит автоматически при запуске приложения.
+
 ### Docker
 
 Запуск приложения с docker-compose
