@@ -56,7 +56,7 @@ func New() http.Handler {
 	r.Route("/team", func(r chi.Router) {
 		r.Post("/add", endpoints.AddTeam(teamRepo))
 		r.Get("/get", endpoints.GetTeamByName(teamRepo))
-		r.Post("/deactivate", endpoints.Deactivate(teamRepo))
+		r.Handle("POST /deactivate", mw.AdminOnly(endpoints.Deactivate(teamRepo)))
 	})
 
 	r.Route("/users", func(r chi.Router) {
