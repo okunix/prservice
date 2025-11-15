@@ -10,7 +10,7 @@ import (
 func AddTeam(repo team.Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req team.AddTeamRequest
-		if err := ReadJson(r.Body, &req); err != nil {
+		if err := ReadAndValidate(r.Body, &req); err != nil {
 			WriteJson(w, http.StatusBadRequest, err)
 			return
 		}

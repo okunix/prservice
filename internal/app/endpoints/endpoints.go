@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/okunix/prservice/internal/pkg/models"
 )
 
 // incomplete interface
@@ -26,4 +28,18 @@ func WriteJson[T any](w http.ResponseWriter, statusCode int, data T) error {
 
 func ReadJson[T any](r io.Reader, dest *T) error {
 	return json.NewDecoder(r).Decode(dest)
+}
+
+type Validatable interface {
+	Validate() error
+}
+
+func ReadAndValidate[T Validatable](r io.Reader, dest T) error {
+	if err := ReadJson(r, &dest); err != nil {
+		return models.ErrInvalidRequestBodyFormat
+	}
+	if err := dest.Validate(); err != nil {
+		return models.ErrValidationFailed(err.(models.ValidationError))
+	}
+	return nil
 }

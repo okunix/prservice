@@ -27,9 +27,6 @@ func (repo *TeamRepoImpl) AddTeam(
 	t team.AddTeamRequest,
 ) (team.AddTeamResponse, error) {
 	var resp team.AddTeamResponse
-	if err := t.Team.Validate(); err != nil {
-		return resp, err
-	}
 
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {

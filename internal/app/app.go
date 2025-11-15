@@ -8,7 +8,7 @@ import (
 	"github.com/okunix/prservice/internal/app/config"
 	"github.com/okunix/prservice/internal/app/router"
 	"github.com/okunix/prservice/internal/pkg/data"
-	"github.com/okunix/prservice/internal/pkg/migrations"
+	"github.com/okunix/prservice/migrations"
 )
 
 func Run() error {

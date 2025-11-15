@@ -10,11 +10,11 @@ import (
 func CreatePullRequest(repo pullrequest.Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req pullrequest.PRCreateRequest
-		if err := ReadJson(r.Body, &req); err != nil {
-			WriteJson(w, http.StatusBadRequest,
-				models.ErrInvalidRequestBodyFormat)
+		if err := ReadAndValidate(r.Body, &req); err != nil {
+			WriteJson(w, http.StatusBadRequest, err)
 			return
 		}
+
 		resp, err := repo.Create(r.Context(), req)
 		if err != nil {
 			WriteJson(w, http.StatusConflict, err)
