@@ -11,7 +11,7 @@ metadata:
 data:
   prservice.yaml: |
     postgres:
-      addr: localhost:5432
+      addr: prservice-postgres:5432
       user: postgres
       password: postgres
       db: prservice_db
@@ -26,9 +26,9 @@ metadata:
   namespace: prservice
 type: Opaque
 data:
-  postgres-user: cG9zdGdyZXMK
-  postgres-password: cG9zdGdyZXMK
-  postgres-db: cHJzZXJ2aWNlX2RiCg==
+  postgres-user: cG9zdGdyZXM=
+  postgres-password: cG9zdGdyZXM=
+  postgres-db: cHJzZXJ2aWNlX2Ri
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -67,7 +67,7 @@ spec:
               name: postgres
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgres
+              mountPath: /var/lib/postgresql
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -132,10 +132,24 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prservice
+  name: prservice-postgres
   namespace: prservice
 spec:
   type: ClusterIP
+  selector:
+    app.kubernetes.io/name: prservice-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prservice
+  namespace: prservice
+spec:
+  type: LoadBalancer
   selector:
     app.kubernetes.io/name: prservice
   ports:
