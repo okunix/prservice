@@ -36,16 +36,14 @@ make
 
 Запуск приложения с docker-compose
 
-**!** Атрибут `version` отсутствует в моих конфигах, поскольку он считается устаревшим в последних версиях docker-compose.
-
 ```bash
-docker compose up
+docker-compose up
 ```
 
 Чтобы пересобрать образ и запустить docker-compose, используйте
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
 Чтобы использовать версию для разработки с горячей перезагрузкой, можно использовать конфигурацию `compose.dev.yaml`
